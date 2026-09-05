@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join a hunting party — Open Season</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#100e0c;--text:#f4f1ea;--muted:rgba(244,241,234,.55);--copper:#d99e7f;--border:rgba(217,158,127,.2)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:Archivo,system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+  .serif{font-family:'Instrument Serif',Georgia,serif;font-weight:400}
+  .it{font-style:italic;color:var(--copper)}
+  h1{font-size:44px;line-height:1.05;margin-bottom:14px}
+  p{color:var(--muted);font-size:16px;max-width:420px;margin:0 auto 10px}
+  .code{font-family:'Instrument Serif',Georgia,serif;font-size:40px;letter-spacing:6px;color:var(--copper);margin:22px 0 26px}
+  .cta{display:inline-block;background:var(--copper);color:#161a17;font-weight:700;padding:15px 28px;border-radius:30px;font-size:15px;text-decoration:none;margin:6px}
+  .cta.ghost{background:transparent;color:var(--copper);border:1px solid var(--border)}
+  .fine{font-size:13px;margin-top:26px}
+  a{color:var(--copper)}
+</style>
+</head>
+<body>
+<div>
+  <h1 class="serif">You're invited to a<br><span class="it">hunting party.</span></h1>
+  <p>A buddy wants you on their roster in Open Season.</p>
+  <div class="code" id="code"></div>
+  <a class="cta" id="open" href="#">Open in the app</a>
+  <a class="cta ghost" href="https://apps.apple.com/us/app/id6791993537">Get Open Season</a>
+  <p class="fine">Have the app but the button doesn't bite? Open it yourself: Profile → Hunting parties → enter the code above.</p>
+</div>
+<script>
+  var c = (new URLSearchParams(location.search).get('c') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 12);
+  document.getElementById('code').textContent = c || '— — — —';
+  var deep = 'openseason://parties' + (c ? '?code=' + c : '');
+  document.getElementById('open').href = deep;
+  // Try the app straight away; if we're still here in a moment, the buttons take over.
+  if (c) { setTimeout(function () { location.href = deep; }, 350); }
+</script>
+</body>
+</html>
