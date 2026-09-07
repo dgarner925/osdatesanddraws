@@ -1,0 +1,50 @@
+name: Refresh state pages
+
+# Regenerates the 50 state SEO pages (+ index and sitemap) from the live
+# database every Monday morning, so season counts never go stale again.
+# The generator lives in the app repo and refuses to publish if any state's
+# official license link is dead — a failed run means "kept last week's pages."
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'   # Mondays 10:00 UTC (~6 AM Eastern)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v4
+
+      - name: Checkout app repo (generator scripts)
+        uses: actions/checkout@v4
+        with:
+          repository: dgarner925/Open-Season-
+          path: app
+
+      - name: Generate pages from live data
+        run: |
+          cd app
+          python scripts/gen_state_pages.py
+
+      - name: Copy into site
+        run: |
+          cp app/docs/site/states/*.html states/
+          cp app/docs/site/sitemap.xml sitemap.xml
+          rm -rf app
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "openseason-bot"
+          git config user.email "contact@osdatesanddraws.com"
+          git add states sitemap.xml
+          if git diff --cached --quiet; then
+            echo "No changes this week."
+          else
+            git commit -m "Weekly state-page refresh ($(date -u +%Y-%m-%d))"
+            git push
+          fi
