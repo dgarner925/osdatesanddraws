@@ -1,9 +1,17 @@
-name: Refresh state pages
+name: Refresh site pages
 
-# Regenerates the 50 state SEO pages (+ index and sitemap) from the live
-# database every Monday morning, so season counts never go stale again.
-# The generator lives in the app repo and refuses to publish if any state's
-# official license link is dead — a failed run means "kept last week's pages."
+# Regenerates every data page on osdatesanddraws.com from the live database
+# each Monday morning: the 50 state pages, the state x species pages, the
+# species hubs, the draw-deadline page, and the sitemap.
+#
+# The generator lives in the app repo. It no longer aborts on a single unhappy
+# agency link -- a dead link drops that one state's license block, and only a
+# pile of them (>5) stops the publish, because that means something here is
+# broken rather than one agency moving a page.
+#
+# The copy step clears the generated directories first, deliberately. A page
+# whose data no longer supports it must disappear rather than sit there serving
+# last cycle's dates, which on this site is the worse failure.
 
 on:
   schedule:
@@ -33,18 +41,28 @@ jobs:
 
       - name: Copy into site
         run: |
-          cp app/docs/site/states/*.html states/
+          rm -rf states species draw-deadlines.html
+          cp -r app/docs/site/states states
+          cp -r app/docs/site/species species
+          cp app/docs/site/draw-deadlines.html draw-deadlines.html
           cp app/docs/site/sitemap.xml sitemap.xml
           rm -rf app
+
+      - name: Sanity-check what we are about to publish
+        run: |
+          n=$(find states species -name '*.html' | wc -l)
+          echo "$n generated pages"
+          test "$n" -ge 300 || { echo "too few pages - refusing to publish"; exit 1; }
+          grep -q '<loc>' sitemap.xml || { echo "sitemap has no URLs"; exit 1; }
 
       - name: Commit and push if changed
         run: |
           git config user.name "openseason-bot"
           git config user.email "contact@osdatesanddraws.com"
-          git add states sitemap.xml
+          git add states species draw-deadlines.html sitemap.xml
           if git diff --cached --quiet; then
             echo "No changes this week."
           else
-            git commit -m "Weekly state-page refresh ($(date -u +%Y-%m-%d))"
+            git commit -m "Weekly site refresh ($(date -u +%Y-%m-%d))"
             git push
           fi
